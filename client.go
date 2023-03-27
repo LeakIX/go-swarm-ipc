@@ -27,13 +27,7 @@ func NewIpcClient(taskName string, port int) *IpcClient {
 	if err != nil {
 		panic(err)
 	}
-	myAddr, err := net.LookupIP(myHostname)
-	if err != nil {
-		panic(err)
-	}
-	if len(myAddr) != 1 {
-		panic("couldn't resolve my ip")
-	}
+	myAddr, _ := net.LookupIP(myHostname)
 
 	c := &IpcClient{
 		myIp:     myAddr[0],
