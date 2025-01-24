@@ -2,17 +2,18 @@ package swarmipc
 
 import (
 	"encoding/json"
-	"log"
 	"net"
 	"os"
 )
 
+// IpcServer is a listener for IPC calls in a Docker Swarm cluster
 type IpcServer struct {
 	myName    string
 	server    *net.UDPConn
 	Callbacks map[string]func([]byte)
 }
 
+// NewIpcServer creates and IPC server listening on the specified UDP port
 func NewIpcServer(port int) (server *IpcServer, err error) {
 	server = &IpcServer{
 		Callbacks: make(map[string]func([]byte)),
@@ -29,24 +30,24 @@ func NewIpcServer(port int) (server *IpcServer, err error) {
 	return server, err
 }
 
+// AddCallback adds a method to be called when an IPC is received
 func (s *IpcServer) AddCallback(method string, callback func(message []byte)) {
 	s.Callbacks[method] = callback
 }
 
+// readLoop reads messages on the UCP port and triggers callback accordingly
 func (s *IpcServer) readLoop() {
 	for {
 		buffer := make([]byte, 1024)
-		length, source, err := s.server.ReadFromUDP(buffer)
+		length, _, err := s.server.ReadFromUDP(buffer)
 		if err != nil {
-			log.Println(err)
 			continue
 		}
 		message := buffer[:length]
-		log.Printf("[%s] Received %s from %s", s.myName, string(message), source.String())
 		var ipcCall ipcMessage
 		err = json.Unmarshal(message, &ipcCall)
 		if err != nil {
-			log.Printf("error decoding call: %s", err.Error())
+			continue
 		}
 		if callback, found := s.Callbacks[ipcCall.Method]; found {
 			go callback(ipcCall.Message)
