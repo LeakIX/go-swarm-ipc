@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"net"
@@ -66,10 +65,10 @@ func (c *IpcClient) updateLocalIp() {
 }
 
 // updateServerList requests the list of replicas for the configured Swarm service name
-// It does that by requesting A records from tasks.<service_name>
+// It does that by requesting A records from <service_name>
 func (c *IpcClient) updateServerList() {
 	for {
-		addrs, err := net.LookupIP(fmt.Sprintf("tasks.%s", c.taskName))
+		addrs, err := net.LookupIP(c.taskName)
 		if err != nil {
 			time.Sleep(10 * time.Second)
 			continue
